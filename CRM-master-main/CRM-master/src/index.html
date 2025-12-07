@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tienda de Gorras — Front</title>
+  <style>
+    /* Reset ligero */
+    * { box-sizing: border-box; }
+    html,body { height:100%; margin:0; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:#f7f7fb; color:#111; }
+
+    /* Layout */
+    .app {
+      max-width:1200px;
+      margin:24px auto;
+      padding:16px;
+    }
+    header.app-header {
+      display:flex;
+      gap:16px;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:18px;
+    }
+    .brand {
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+    .logo {
+      width:54px;
+      height:54px;
+      border-radius:10px;
+      display:grid;
+      place-items:center;
+      background:linear-gradient(135deg,#2b6df6,#8b5cf6);
+      color:white;
+      font-weight:700;
+      box-shadow:0 6px 18px rgba(43,109,246,.16);
+    }
+    h1 { margin:0; font-size:1.25rem; letter-spacing:-0.02em; }
+    .controls { display:flex; gap:10px; align-items:center; }
+
+    /* Search / select */
+    .search {
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .search input[type="search"]{
+      padding:8px 12px;
+      border-radius:10px;
+      border:1px solid #e3e6ee;
+      width:320px;
+      outline:none;
+      background:white;
+    }
+    .select, .small-btn {
+      padding:8px 10px;
+      border-radius:10px;
+      border:1px solid #e3e6ee;
+      background:white;
+    }
+    .small-btn { cursor:pointer; }
+
+    /* Main grid */
+    .main {
+      display:grid;
+      grid-template-columns: 1fr 360px;
+      gap:18px;
+      align-items:start;
+    }
+
+    /* Catalog */
+    .catalog {
+      background:linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.95));
+      padding:16px;
+      border-radius:12px;
+      border:1px solid #eef1f6;
+      min-height:400px;
+    }
+    .catalog h2 { margin:0 0 8px 0; font-size:1.05rem; }
+    .grid {
+      margin-top:12px;
+      /* Grid responsivo: 220px mínimo */
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap:12px;
+      display:grid; /* Mantenemos display:grid aquí */
+    }
+
+    .card {
+      background:white;
+      border-radius:12px; /* Ligeramente más redondo */
+      padding:16px; /* Más padding */
+      border:1px solid #f0f2f7;
+      display:flex;
+      flex-direction:column;
+      gap:10px; /* Más espacio */
+      transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease; /* Transiciones más suaves */
+      box-shadow:0 4px 12px rgba(15,23,42,0.04); /* Sombra inicial suave */
+    }
+    .card:hover {
+      transform:translateY(-8px); /* Más levantado */
+      box-shadow:0 18px 36px rgba(43,109,246,0.12); /* Sombra más pronunciada y de color */
+      border-color:rgba(43,109,246,0.2);
+    }
+    .cap-image {
+      width:100%;
+      height:160px; /* Un poco más alto */
+      border-radius:10px;
+      overflow:hidden;
+      display:grid;
+      place-items:center;
+      /* Gradiente de fondo más moderno */
+      background:linear-gradient(180deg, #e0f2fe, #f0f9ff);
+    }
+    /* Estilo del emoji dentro de la imagen */
+    .cap-image .emoji-icon {
+        font-size: 60px;
+        line-height: 1;
+        transition: transform .3s ease;
+    }
+    .card:hover .cap-image .emoji-icon {
+        transform: scale(1.1); /* Ligera animación al pasar el ratón */
+    }
+
+    .card h3 { margin:0; font-size:1.1rem; }
+    .desc { margin:0; font-size:.9rem; color:#555; min-height:auto; /* Eliminamos min-height fijo */ }
+    .meta-row { display:flex; flex-wrap:wrap; gap:8px 12px; align-items:center; font-size:.9rem; color:#444; }
+    .type-color { display:flex; gap:8px; align-items:center; }
+
+    .price-row { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:8px; }
+    .price { font-weight:800; color:#111; font-size:1.2rem; }
+    .muted { font-size:.9rem; color:#777; }
+
+    .card .actions { display:flex; gap:8px; margin-top:12px; /* Más margen superior */ }
+    .btn { padding:10px 14px; border-radius:10px; border:0; cursor:pointer; background:linear-gradient(90deg,#2b6df6,#63a6f6); color:white; font-weight:700; transition:background .3s ease; }
+    .btn:hover { background:linear-gradient(90deg,#1c52d0,#4e83c2); }
+    .btn.ghost { background:transparent; border:1px solid #e6e9f2; color:#333; font-weight:600; transition:border-color .2s ease; }
+    .btn.ghost:hover { border-color:#bbc3d4; }
+    .qty { padding:6px 8px; border-radius:8px; border:1px solid #e7e9f3; background:white; min-width:44px; text-align:center; }
+
+    /* Cart */
+    aside.cart {
+      position:sticky;
+      top:18px;
+      background:white;
+      padding:16px; /* Más padding */
+      border-radius:12px;
+      border:1px solid #eef1f6;
+      min-height:120px;
+      box-shadow:0 6px 18px rgba(15,23,42,0.05);
+    }
+    aside.cart h3 { margin:0 0 8px 0; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .cart-empty { color:#666; font-size:.95rem; padding:8px 0; }
+    .cart-list { display:flex; flex-direction:column; gap:10px; margin-top:10px; max-height:480px; overflow:auto; padding-right:8px; } /* Altura y gap ajustados */
+    .cart-item { display:flex; gap:12px; align-items:center; border-radius:10px; padding:10px; background:#f5f8ff; border:1px solid #eef1f6; } /* Diseño de item de carrito mejorado */
+    .cart-item .thumb { width:52px; height:52px; border-radius:8px; overflow:hidden; display:grid; place-items:center; background:#e0f2fe; }
+    .cart-item .meta { flex:1; }
+    .cart-item .meta strong { display:block; font-size:1rem; }
+    .cart-item .meta .muted-small { color:#555; }
+    .cart-item .controls { display:flex; gap:6px; align-items:center; }
+    .control-btn { background:#f0f2f7; border:1px solid #e6e9f2; padding:4px 8px; border-radius:6px; cursor:pointer; min-width:30px; font-weight:600; transition:background .15s ease; }
+    .control-btn:hover { background:#e8ebf0; }
+
+    .total-row { margin-top:16px; display:flex; justify-content:space-between; align-items:center; gap:8px; font-weight:800; font-size:1.15rem; padding-top:10px; border-top:1px dashed #eee; }
+    .checkout-btn { margin-top:12px; width:100%; padding:14px; border-radius:10px; border:0; cursor:pointer; background:linear-gradient(90deg,#2b6df6,#8b5cf6); color:white; font-weight:700; font-size:1rem; transition:opacity .2s ease; }
+    .checkout-btn:hover { opacity:.9; }
+
+    /* Notificación 'Añadido al carrito' */
+    #add-alert {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: linear-gradient(90deg, #10b981, #059669);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+      transform: translateY(20px);
+      z-index: 1000;
+    }
+    #add-alert.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    /* Responsive */
+    @media (max-width:980px) {
+      .main { grid-template-columns: 1fr; }
+      .brand h1 { display:none; }
+      .search input[type="search"] { width:240px; }
+    }
+    /* Breakpoint móvil para grid (768px) y layout general */
+    @media (max-width:768px) {
+        .app { margin:12px auto; padding:10px; }
+        header.app-header { flex-direction:column; align-items:flex-start; }
+        .controls { flex-direction:column; align-items:stretch; width:100%; gap:8px; }
+        .search { flex-direction:column; align-items:stretch; width:100%; }
+        .search input[type="search"] { width:100%; }
+        .search .select { width:100%; }
+        .grid {
+            /* Forzar a una columna para móviles */
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        }
+    }
+
+
+    /* small helpers */
+    .badge { background:#ffefc7; padding:3px 8px; border-radius:999px; font-weight:700; font-size:.82rem; color:#6b4b00; }
+    .muted-small { font-size:.82rem; color:#888; }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="app-header">
+      <div class="brand">
+        <div class="logo">G</div>
+        <div>
+          <h1>Tienda de Gorras</h1>
+          <div class="muted-small">Gorras urbanas · deportivas · clásicas</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="search">
+          <input id="search" type="search" placeholder="Buscar gorras (ej. snapback, negra...)" />
+          <select id="filter-type" class="select" title="Filtrar por tipo">
+            <option value="">Todos los tipos</option>
+            </select>
+
+          <select id="filter-color" class="select" title="Filtrar por color">
+            <option value="">Todos los colores</option>
+            </select>
+          
+          <select id="sort" class="select" title="Ordenar">
+            <option value="default">Orden predeterminado</option>
+            <option value="price-asc">Precio: bajo → alto</option>
+            <option value="price-desc">Precio: alto → bajo</option>
+            <option value="name-asc">Nombre A → Z</option>
+          </select>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div id="cart-mini" style="display:flex;gap:8px;align-items:center;">
+            <button class="small-btn" id="view-cart">Ver carrito</button>
+            <div class="badge" id="cart-count">0</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="catalog" aria-labelledby="catalog-title">
+        <h2 id="catalog-title">Catálogo de Gorras</h2>
+        <div id="catalog-sub" class="muted">24 productos disponibles. Selecciona, filtra y añade al carrito.</div>
+
+        <div class="grid" id="products-grid" aria-live="polite">
+          </div>
+      </section>
+
+      <aside class="cart" aria-labelledby="cart-title">
+        <h3 id="cart-title">Carrito <span class="muted-small">(<span id="cart-items-count">0</span> items)</span></h3>
+        <div id="cart-content">
+          <div class="cart-empty" id="cart-empty-msg">Tu carrito está vacío. Añade gorras desde el catálogo.</div>
+          <div class="cart-list" id="cart-list" style="display:none;"></div>
+
+          <div class="total-row" id="cart-total-row" style="display:none;">
+            <div>Total</div>
+            <div id="cart-total">$0.00</div>
+          </div>
+
+          <button id="checkout-btn" class="checkout-btn" style="display:none;">Pagar</button>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <div id="add-alert">🛒 Producto añadido al carrito!</div>
+
+  <script>
+    /****************************************************************
+      * Tienda de Gorras - Front (archivo único)
+      * - Productos definidos en el array `PRODUCTS`
+      ****************************************************************/
+
+    const LS_KEY = 'tienda_gorras_cart_v1';
+    
+    // --- NUEVAS CATEGORÍAS Y PRODUCTOS ---
+    const CATEGORIES = {
+      planas: { name: 'Planas', price: 25.00, emoji: '😎' },
+      normales: { name: 'Normales', price: 30.00, emoji: '🧢' },
+      clasicas: { name: 'Clásicas', price: 40.00, emoji: '🎩' },
+      vintage: { name: 'Vintage', price: 50.00, emoji: '🪖' }
+    };
+
+    const COLORS = ['Negro', 'Blanco', 'Rojo', 'Azul', 'Verde', 'Amarillo'];
+
+    function generateProducts() {
+      const products = [];
+      let idCounter = 1;
+      
+      const categoryKeys = Object.keys(CATEGORIES);
+      const categoryCount = categoryKeys.length;
+      const productsPerCategory = 24 / categoryCount; // 6 productos por categoría
+
+      for (let i = 0; i < categoryCount; i++) {
+        const typeKey = categoryKeys[i];
+        const category = CATEGORIES[typeKey];
+        
+        for (let j = 0; j < productsPerCategory; j++) {
+          const colorName = COLORS[j % COLORS.length]; // Rotar colores
+          const colorSlug = colorName.toLowerCase();
+
+          products.push({
+            id: `g${idCounter++}`,
+            name: `Gorra ${category.name} ${colorName}`,
+            type: typeKey, // clave (ej. planas)
+            typeName: category.name, // nombre visible (ej. Planas)
+            color: colorSlug, // color en slug (ej. negro)
+            colorName: colorName, // nombre del color (ej. Negro)
+            description: `Estilo ${category.name}, color ${colorName}. Calidad premium.`,
+            price: category.price,
+            emoji: category.emoji,
+            badge: (j === 0 && i === 0) ? 'Nuevo' : null // Ejemplo de badge
+          });
+        }
+      }
+      return products;
+    }
+    
+    //const PRODUCTS = generateProducts();
+    // --- ANTES:
+// const PRODUCTS = generateProducts(); 
+// --- DESPUÉS:
+
+let PRODUCTS = []; // La lista de productos estará inicialmente vacía o se carga en init()
+
+// Modificamos la función init para cargar desde la API
+async function fetchProducts() {
+    try {
+        // Asume que tu API se ejecuta en la misma máquina, en el puerto 5000 o 5001
+        const response = await fetch('http://localhost:8080/api/gorras'); // <-- URL de tu API en VS
+        if (!response.ok) throw new Error('Error al cargar productos de la API');
+        
+        PRODUCTS = await response.json(); // Reemplaza la variable PRODUCTS con los datos de la API
+        
+        document.getElementById('catalog-sub').textContent = `${PRODUCTS.length} productos disponibles. Selecciona, filtra y añade al carrito.`;
+
+        // Una vez que PRODUCTS está lleno, inicializamos todo lo demás:
+        populateFilters();
+        applyFiltersAndSort();
+        renderCart();
+        updateCartBadge();
+        
+    } catch (error) {
+        console.error("Error al conectar con la API:", error);
+        document.getElementById('catalog-sub').textContent = 'Error de conexión con la API.';
+    }
+}
+
+
+// Cambia tu bloque de inicialización al final del script:
+(function init() {
+    // LLAMAR a la función asíncrona para iniciar todo
+    fetchProducts();
+})();
+    // ------------------------------------
+
+    // ------------------ helpers ------------------
+    function formatPrice(num) {
+      // Usar 'USD' ya que los precios son en $
+      return new Intl.NumberFormat('en-US', { style:'currency', currency:'USD', minimumFractionDigits: 2 }).format(num);
+    }
+
+    // Genera una imagen SVG como dataURL para cada gorra (color, nombre)
+    function svgDataUrl(name, color, emoji) {
+      // Usamos el emoji directamente
+      const colorMap = {
+        negro: ['#222','#000'],
+        blanco: ['#f3f4f6','#d1d5db'],
+        rojo: ['#ff5a5f','#c43d3d'],
+        azul: ['#3b82f6','#2356c8'],
+        verde: ['#10b981','#059669'],
+        amarillo: ['#facc15','#eab308'],
+        default: ['#f3f4f6','#d1d5db']
+      };
+      const cols = colorMap[color] || colorMap.default;
+      const text = emoji; // Usamos el emoji
+
+      // SVG con gradiente y el emoji en el centro
+      const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='500' viewBox='0 0 800 500'>
+        <defs>
+          <linearGradient id='g' x1='0' x2='1' y1='0' y2='1'>
+            <stop offset='0%' stop-color='${cols[0]}' stop-opacity='1'/>
+            <stop offset='100%' stop-color='${cols[1]}' stop-opacity='1'/>
+          </linearGradient>
+        </defs>
+        <rect width='100%' height='100%' fill='url(#g)'/>
+        <text x='400' y='275' font-family='Arial' font-size='200' text-anchor='middle' alignment-baseline='middle'>${text}</text>
+      </svg>`;
+      return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+
+    // Alerta de producto añadido
+    const addAlertEl = document.getElementById('add-alert');
+    function showAlert() {
+        addAlertEl.classList.add('show');
+        setTimeout(() => {
+            addAlertEl.classList.remove('show');
+        }, 1500);
+    }
+
+
+    // ------------------ carrito (localStorage) ------------------
+    function loadCart() {
+      try {
+        const raw = localStorage.getItem(LS_KEY);
+        if(!raw) return [];
+        return JSON.parse(raw);
+      } catch(e) {
+        console.warn('Error leyendo localStorage', e);
+        return [];
+      }
+    }
+    function saveCart(cart) {
+      localStorage.setItem(LS_KEY, JSON.stringify(cart));
+      renderCart();
+      updateCartBadge();
+    }
+
+    function addToCart(productId, qty = 1) {
+      const cart = loadCart();
+      const entry = cart.find(i => i.id === productId);
+      if(entry) entry.qty += qty;
+      else cart.push({ id: productId, qty: qty });
+      saveCart(cart);
+      showAlert(); // Mostrar alerta
+    }
+    function changeQty(productId, delta) {
+      const cart = loadCart();
+      const entry = cart.find(i => i.id === productId);
+      if(!entry) return;
+      entry.qty += delta;
+      if(entry.qty <= 0) {
+        const idx = cart.indexOf(entry);
+        cart.splice(idx,1);
+      }
+      saveCart(cart);
+    }
+    function removeFromCart(productId) {
+      const cart = loadCart();
+      const idx = cart.findIndex(i => i.id === productId);
+      if(idx >= 0) { cart.splice(idx,1); saveCart(cart); }
+    }
+    function clearCart() {
+      saveCart([]);
+    }
+
+    // ------------------ render productos ------------------
+    const gridEl = document.getElementById('products-grid');
+    const searchInput = document.getElementById('search');
+    const filterTypeSelect = document.getElementById('filter-type'); // Nuevo filtro por tipo
+    const filterColorSelect = document.getElementById('filter-color');
+    const sortSelect = document.getElementById('sort');
+
+    function buildProductCard(p) {
+      const wrap = document.createElement('article');
+      wrap.className = 'card';
+      wrap.setAttribute('data-type', p.type); // Atributo para fácil filtrado/estilismo
+      wrap.setAttribute('data-color', p.color);
+
+      wrap.innerHTML = `
+        <div class="cap-image">
+          <span class="emoji-icon">${p.emoji}</span>
+        </div>
+        <h3>${p.name}</h3>
+        <div class="meta-row">
+            <div class="type-color">Tipo: <strong>${p.typeName}</strong></div>
+            <div class="type-color">Color: <strong>${p.colorName}</strong></div>
+        </div>
+        <p class="desc">${p.description}</p>
+        <div class="price-row">
+          <div class="price">${formatPrice(p.price)}</div>
+          <div class="muted">${p.badge ? `<span class="badge">${p.badge}</span>` : ''}</div>
+        </div>
+        <div class="actions">
+          <button class="btn add-btn">Añadir</button>
+          <button class="btn ghost" data-id="${p.id}">Detalles</button>
+        </div>
+      `;
+      // eventos
+      wrap.querySelector('.add-btn').addEventListener('click', () => {
+        addToCart(p.id, 1);
+        // La alerta se maneja en addToCart
+      });
+      wrap.querySelector('.btn.ghost').addEventListener('click', () => {
+        alert(`${p.name} (${p.typeName})\nColor: ${p.colorName}\n\n${p.description}\n\nPrecio: ${formatPrice(p.price)}`);
+      });
+      return wrap;
+    }
+
+    function renderProducts(list) {
+      gridEl.innerHTML = '';
+      if(!list.length) {
+        gridEl.innerHTML = '<div class="muted">No se han encontrado productos con esos criterios.</div>';
+        return;
+      }
+      const frag = document.createDocumentFragment();
+      for(const p of list) frag.appendChild(buildProductCard(p));
+      gridEl.appendChild(frag);
+    }
+
+    // ------------------ filtros y orden ------------------
+    function populateFilters() {
+        // Popula Tipos
+        const types = [...new Set(PRODUCTS.map(p => p.type))];
+        filterTypeSelect.innerHTML = '<option value="">Todos los tipos</option>';
+        types.forEach(typeKey => {
+            const name = CATEGORIES[typeKey].name;
+            const option = new Option(name, typeKey);
+            filterTypeSelect.appendChild(option);
+        });
+
+        // Popula Colores
+        const colors = [...new Set(PRODUCTS.map(p => p.color))].sort();
+        filterColorSelect.innerHTML = '<option value="">Todos los colores</option>';
+        colors.forEach(colorSlug => {
+            const colorName = colorSlug.charAt(0).toUpperCase() + colorSlug.slice(1); // Capitalizar
+            const option = new Option(colorName, colorSlug);
+            filterColorSelect.appendChild(option);
+        });
+    }
+
+    function applyFiltersAndSort() {
+      const q = (searchInput.value || '').trim().toLowerCase();
+      const filterType = filterTypeSelect.value || '';
+      const filterColor = filterColorSelect.value || '';
+      const sort = sortSelect.value || 'default';
+
+      let list = PRODUCTS.slice();
+
+      // 1. Filtrar por Tipo
+      if(filterType) {
+        list = list.filter(p => p.type === filterType);
+      }
+      
+      // 2. Filtrar por Color
+      if(filterColor) {
+        list = list.filter(p => p.color === filterColor);
+      }
+
+      // 3. Filtrar por Búsqueda (nombre o descripción)
+      if(q) {
+        list = list.filter(p =>
+          p.name.toLowerCase().includes(q) ||
+          (p.description && p.description.toLowerCase().includes(q))
+        );
+      }
+
+      // 4. Ordenar
+      if(sort === 'price-asc') list.sort((a,b)=> a.price - b.price);
+      else if(sort === 'price-desc') list.sort((a,b)=> b.price - a.price);
+      else if(sort === 'name-asc') list.sort((a,b)=> a.name.localeCompare(b.name));
+
+      renderProducts(list);
+    }
+
+    // ------------------ render carrito ------------------
+    const cartListEl = document.getElementById('cart-list');
+    const cartEmptyMsg = document.getElementById('cart-empty-msg');
+    const cartTotalEl = document.getElementById('cart-total');
+    const cartItemsCountEl = document.getElementById('cart-items-count');
+    const cartCountBadge = document.getElementById('cart-count');
+    const checkoutBtn = document.getElementById('checkout-btn');
+    const cartTotalRow = document.getElementById('cart-total-row');
+
+
+    function renderCart() {
+      const cart = loadCart();
+      if(!cart.length) {
+        cartEmptyMsg.style.display = 'block';
+        cartListEl.style.display = 'none';
+        cartTotalRow.style.display = 'none';
+        checkoutBtn.style.display = 'none';
+        cartItemsCountEl.textContent = '0';
+        cartCountBadge.textContent = '0';
+        return;
+      }
+
+      cartEmptyMsg.style.display = 'none';
+      cartListEl.style.display = 'flex';
+      cartListEl.innerHTML = '';
+
+      // map cart items to product data
+      let total = 0;
+      let itemsCount = 0;
+
+      for(const entry of cart) {
+        const prod = PRODUCTS.find(p=>p.id === entry.id);
+        if(!prod) continue;
+        total += prod.price * entry.qty;
+        itemsCount += entry.qty;
+
+        const item = document.createElement('div');
+        item.className = 'cart-item';
+        item.innerHTML = `
+          <div class="thumb"><span class="emoji-icon">${prod.emoji}</span></div>
+          <div class="meta">
+            <strong>${prod.name}</strong>
+            <div class="muted-small">${entry.qty} × ${formatPrice(prod.price)}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+            <div class="controls">
+              <button class="control-btn dec">-</button>
+              <div class="qty">${entry.qty}</div>
+              <button class="control-btn inc">+</button>
+            </div>
+            <button class="control-btn" style="background:transparent; border:none; color:#dc2626; font-size:.82rem; font-weight:700;" data-remove>Eliminar</button>
+          </div>
+        `;
+
+        // eventos controles
+        item.querySelector('.inc').addEventListener('click', () => changeQty(prod.id, +1));
+        item.querySelector('.dec').addEventListener('click', () => changeQty(prod.id, -1));
+        item.querySelector('[data-remove]').addEventListener('click', () => {
+          if(confirm('¿Eliminar este artículo del carrito?')) removeFromCart(prod.id);
+        });
+
+        cartListEl.appendChild(item);
+      }
+
+      cartTotalEl.textContent = formatPrice(total);
+      cartItemsCountEl.textContent = String(itemsCount);
+      cartCountBadge.textContent = String(itemsCount);
+      cartTotalRow.style.display = 'flex';
+      checkoutBtn.style.display = 'block';
+    }
+
+    function updateCartBadge() {
+      const cart = loadCart();
+      const items = cart.reduce((s,i) => s + i.qty, 0);
+      cartCountBadge.textContent = String(items);
+    }
+
+    // ------------------ eventos UI ------------------
+    document.getElementById('view-cart').addEventListener('click', () => {
+      // desplazar a la sección carrito
+      document.querySelector('aside.cart').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    searchInput.addEventListener('input', () => applyFiltersAndSort());
+    filterTypeSelect.addEventListener('change', () => applyFiltersAndSort()); // Nuevo evento de filtro por tipo
+    filterColorSelect.addEventListener('change', () => applyFiltersAndSort());
+    sortSelect.addEventListener('change', () => applyFiltersAndSort());
+
+    checkoutBtn.addEventListener('click', () => {
+      const cart = loadCart();
+      if(!cart.length) return alert('Tu carrito está vacío.');
+      const total = cart.reduce((s,e) => {
+        const prod = PRODUCTS.find(p=>p.id===e.id);
+        return s + (prod ? prod.price * e.qty : 0);
+      }, 0);
+      // simulación de checkout
+      if(confirm(`Total a pagar: ${formatPrice(total)}\n\n¿Deseas simular el pago y vaciar el carrito?`)) {
+        clearCart();
+        alert('Pago simulado — Gracias por tu compra (simulación).');
+      }
+    });
+
+    // Observador simple de storage (por si hay múltiples pestañas)
+    window.addEventListener('storage', (ev) => {
+      if(ev.key === LS_KEY) renderCart();
+    });
+
+    // Inicialización
+    /*(function init() {
+      populateFilters(); // Rellenar los dropdowns de filtro
+      applyFiltersAndSort(); // Inicialmente renderizar con todos los productos
+      renderCart();
+      updateCartBadge();
+    })();*/ //OJOOOOOOOOOOOOOOOOOOOOOOOOOO
+  </script>
+</body>
+</html>
